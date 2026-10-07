@@ -40,7 +40,8 @@ testpaths = ["tests"]
 pythonpath = ["src"]
 
 [tool.flet.flutter.pubspec.dependency_overrides]
-# jni_flutter 1.0.4+1 (6-oct-2026) exige jni ^1.1.0, pero Flet 1.0.3 fija
-# jni 1.0.0 → "generated bindings expect package:jni ^1.1.0". Se fija la
-# versión anterior, compatible. Quitar al actualizar Flet.
-jni_flutter = "1.0.4"
+# Flet 1.0.3 fija jni 1.0.0, pero jni_flutter >= 1.0.4 genera bindings con
+# JniVersionCheck(1, 1) → "generated bindings expect package:jni ^1.1.0".
+# 1.0.3 es la última que genera JniVersionCheck(1, 0) (verificado en el
+# código fuente de cada versión). Quitar al actualizar Flet.
+jni_flutter = "1.0.3"
