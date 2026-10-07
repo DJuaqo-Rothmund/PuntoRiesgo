@@ -81,6 +81,7 @@ html, body, #map {
   padding: 1px 6px;
 }
 .sector-label::before { display: none; }
+.hide-labels .sector-label { display: none; }
 
 /* ---------- Controles ---------- */
 .ctrl-btn {

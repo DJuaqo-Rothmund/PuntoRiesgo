@@ -68,3 +68,15 @@ def test_engines_agree(sample_path):
                 mb.sector_id, mb.sector_inside, mb.equipment_id), (lat, lon)
             if ma.sector_distance_m is not None:
                 assert ma.sector_distance_m == pytest.approx(mb.sector_distance_m, abs=0.2)
+
+
+def test_real_farm_layer_equipment_from_sector():
+    from conftest import REAL
+
+    layers = load_vector_file(REAL)
+    assert len(layers.sectors) == 40 and not layers.equipment
+    idx = SpatialIndex(layers, engine="pure")
+    m = idx.locate(-39.553952, -72.478537)  # centroide declarado de E2-S10
+    assert m.sector_id == "E2-S10" and m.sector_inside
+    assert m.equipment_name == "Equipo 2" and m.equipment_distance_m is None
+    assert m.equipment_label == "Equipo 2 (equipo del sector)"

@@ -22,11 +22,12 @@ PuntoRiesgo/
 ├── pyproject.toml              # Config de `flet build` (permisos, dependencias móviles)
 ├── requirements.txt            # Dependencias de desarrollo/escritorio
 ├── scripts/
-│   └── precache_tiles.py       # CLI: pre-descarga de tiles a .mbtiles desde un PC
+│   ├── precache_tiles.py       # CLI: pre-descarga de tiles a .mbtiles desde un PC
+│   └── import_dashboard.py     # CLI: dashboard HTML de sectorización → GeoJSON
 ├── src/
 │   ├── main.py                 # Punto de entrada (ft.run)
 │   ├── assets/
-│   │   ├── data/sectores_riego.geojson   # Capa de ejemplo: 4 sectores + 7 equipos
+│   │   ├── data/el_amanecer.geojson      # Predio El Amanecer: 40 sectores (plano DWG)
 │   │   └── web/
 │   │       ├── map.html / map.css / map.js   # Mapa Leaflet (pines, capas, GPS, long-press)
 │   │       └── vendor/leaflet/               # Leaflet local (funciona sin internet)
@@ -50,7 +51,7 @@ PuntoRiesgo/
 │           ├── map_view.py     # WebView (o alternativa en escritorio)
 │           ├── alert_form.py   # Formulario "Registrar Alerta"
 │           └── offline_dialog.py # Descarga del mapa offline con progreso
-└── tests/                      # pytest: espacial, KML, tiles, cola de sync, servidor
+└── tests/                      # pytest (+ tests/data/sectores_riego.geojson de ejemplo)
 ```
 
 ## 2. Arquitectura
@@ -83,13 +84,13 @@ Decisiones clave:
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-pytest                      # 24 tests
+pytest                      # 25 tests
 ```
 
 ### 3.2 Ejecutar en el escritorio (modo web, con el mapa embebido)
 ```bash
 cd src
-PUNTORIESGO_FAKE_GPS="-34.2005,-70.7745" PUNTORIESGO_BACKEND=none flet run --web main.py
+PUNTORIESGO_FAKE_GPS="-39.5467,-72.4663" PUNTORIESGO_BACKEND=none flet run --web main.py
 ```
 * `PUNTORIESGO_FAKE_GPS` simula el GPS, porque en escritorio no hay.
 * En modo web el iframe del mapa captura los clics de los controles que tiene encima (es una limitación de Flutter web). Por eso, solo en ese modo, el botón "Registrar Alerta" va en una barra inferior y el mapa se oculta mientras hay un diálogo abierto. En Android/iOS el botón flota sobre el mapa.
@@ -118,7 +119,9 @@ flet build ipa      # iOS (en macOS con Xcode)
 
 ### 3.6 Cargar tu propio predio
 * Desde la app: menú ⋮ → **Importar sectores (GeoJSON/KML)…**. El archivo se guarda y se vuelve a cargar al iniciar.
-* O reemplaza `src/assets/data/sectores_riego.geojson`.
+* O reemplaza `src/assets/data/el_amanecer.geojson`. Para regenerarlo desde el dashboard de sectorización:
+  `python scripts/import_dashboard.py dashboard-riego.html src/assets/data/el_amanecer.geojson`.
+* Si los sectores traen la propiedad `equipo_riego` y no hay puntos de equipos, el reporte toma el equipo del sector.
 * Los polígonos se toman como **sectores** y los puntos como **equipos de riego**. Si una propiedad `layer`/`capa`/`tipo` o el nombre de la carpeta KML dice "sector" o "equipo/válvula/bomba", se respeta. El nombre se toma de `nombre`/`name`, y el id de `id`/`codigo`.
 
 ### 3.7 Mapa offline

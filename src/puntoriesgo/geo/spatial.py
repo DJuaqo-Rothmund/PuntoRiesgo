@@ -31,7 +31,10 @@ from typing import Any, Optional, Sequence
 from .tile_math import EARTH_RADIUS_M
 from .vector_layers import VectorFeature, VectorLayers
 
-Ring = list[tuple[float, float]]  # coordenadas proyectadas (x, y) en metros
+Ring = list[tuple[float, float]]
+
+# Propiedades de un sector que indican a qué equipo de riego pertenece.
+SECTOR_EQUIPMENT_KEYS = ("equipo_riego", "equipo", "equipoRiego", "cabezal")  # coordenadas proyectadas (x, y) en metros
 
 
 # --------------------------------------------------------------------------- #
@@ -189,6 +192,8 @@ class SpatialMatch:
         """Equipo más cercano; agrega el del propio sector si es otro."""
         if not self.equipment_name:
             return "Sin equipos cargados"
+        if self.equipment_distance_m is None:  # asignado por atributo del sector
+            return f"{self.equipment_name} (equipo del sector)"
         label = f"{self.equipment_name} ({self.equipment_distance_m:.0f} m)"
         if self.equipment_in_sector_id and self.equipment_in_sector_id != self.equipment_id:
             label += (f" · del sector: {self.equipment_in_sector_name} "
@@ -262,6 +267,14 @@ class SpatialIndex:
             match.sector_distance_m = round(dist, 1)
 
         # 2) Equipo más cercano (global y dentro del sector)
+        if not self.equipment and idx is not None:
+            # Sin puntos de equipos: se usa el equipo declarado como atributo
+            # del sector (p. ej. "equipo_riego": "Equipo 2" del plano de riego).
+            props = self.sectors[idx].properties
+            name = next((props[k] for k in SECTOR_EQUIPMENT_KEYS if props.get(k)), None)
+            if name:
+                match.equipment_id = str(props.get("equipo_id") or name)
+                match.equipment_name = str(name)
         if self.equipment:
             if self.engine == "shapely":
                 g_idx = self._nearest_equipment_shapely(x, y)

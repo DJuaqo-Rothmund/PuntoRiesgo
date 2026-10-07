@@ -13,6 +13,7 @@
 
   const POLL_MS = 1000;
   const LONG_PRESS_MS = 650;
+  const LABEL_MIN_ZOOM = 16;
 
   const S = {
     map: null,
@@ -74,6 +75,7 @@
 
     S.map = L.map("map", {
       zoomControl: false,
+      zoomSnap: 0.5, // encuadre más ajustado del predio en pantallas angostas
       maxZoom: S.cfg.max_zoom,
       minZoom: 3,
       attributionControl: true,
@@ -92,8 +94,10 @@
     }).addTo(S.map);
 
     S.layers.sectors = L.geoJSON(null, {
-      style: function () {
-        return { color: "#ffeb3b", weight: 2, fillColor: "#ffeb3b", fillOpacity: 0.08 };
+      style: function (f) {
+        // Color del plano si la capa lo trae; si no, amarillo.
+        const c = (f && f.properties && f.properties.color) || "#ffeb3b";
+        return { color: c, weight: 2, fillColor: c, fillOpacity: 0.12 };
       },
       onEachFeature: function (f, layer) {
         layer.bindTooltip(esc(f.properties._name), {
@@ -134,6 +138,13 @@
     const c = S.cfg.center || [-33.45, -70.66];
     S.map.setView(c, S.cfg.initial_zoom || 15);
     if (S.cfg.bounds) S.map.fitBounds(S.cfg.bounds, { padding: [20, 20] });
+
+    // Con muchos sectores, las etiquetas sólo se muestran de cerca.
+    const toggleLabels = function () {
+      S.map.getContainer().classList.toggle("hide-labels", S.map.getZoom() < LABEL_MIN_ZOOM);
+    };
+    S.map.on("zoomend", toggleLabels);
+    toggleLabels();
 
     // Si el usuario arrastra el mapa, dejamos de seguir el GPS.
     S.map.on("dragstart", function () { setFollow(false); });

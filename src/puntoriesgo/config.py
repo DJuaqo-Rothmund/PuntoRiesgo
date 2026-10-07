@@ -89,7 +89,7 @@ class AppConfig:
 
     # Capa vectorial de sectores y equipos de riego (GeoJSON, KML o KMZ).
     # Si es relativa, se busca primero en data_dir y luego en assets/data.
-    vector_layer_path: str = "sectores_riego.geojson"
+    vector_layer_path: str = "el_amanecer.geojson"
 
     # Mapa base
     tile_source_id: str = "esri_world_imagery"

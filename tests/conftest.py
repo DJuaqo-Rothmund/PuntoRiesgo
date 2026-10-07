@@ -6,7 +6,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-SAMPLE = ROOT / "src" / "assets" / "data" / "sectores_riego.geojson"
+SAMPLE = ROOT / "tests" / "data" / "sectores_riego.geojson"
+REAL = ROOT / "src" / "assets" / "data" / "el_amanecer.geojson"
 
 
 @pytest.fixture
