@@ -1,0 +1,40 @@
+[project]
+name = "puntoriesgo"
+version = "0.1.0"
+description = "Control de riesgos en terreno: mapa satelital offline, alertas georreferenciadas y cruce espacial con sectores de riego."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "PuntoRiesgo" }]
+# Dependencias que `flet build` empaqueta en la app móvil.
+# Shapely se omite a propósito: la app usa el motor espacial puro-Python
+# en el dispositivo (sin binarios nativos que compilar para Android/iOS).
+dependencies = [
+  "flet==1.0.3",
+  "flet-webview==1.0.3",
+  "flet-geolocator==1.0.3",
+  "pillow",
+]
+
+[tool.flet]
+org = "cl.puntoriesgo"
+product = "PuntoRiesgo"
+company = "PuntoRiesgo"
+copyright = "Copyright (C) 2026 PuntoRiesgo"
+# Permisos multiplataforma: ubicación (GPS), cámara y fotos.
+permissions = ["location", "camera", "photo_library"]
+
+[tool.flet.app]
+path = "src"
+
+[tool.flet.android.manifest_application]
+# Necesario para que el WebView cargue el servidor local http://127.0.0.1
+usesCleartextTraffic = "true"
+
+[tool.flet.ios.info]
+NSLocationWhenInUseUsageDescription = "PuntoRiesgo usa tu ubicación para georreferenciar los riesgos que registras."
+NSCameraUsageDescription = "PuntoRiesgo usa la cámara para fotografiar los riesgos en terreno."
+NSPhotoLibraryUsageDescription = "PuntoRiesgo adjunta fotos de tu galería a los reportes."
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

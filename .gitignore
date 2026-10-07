@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+*.mbtiles
+*.sqlite3
+*.db
+.puntoriesgo/

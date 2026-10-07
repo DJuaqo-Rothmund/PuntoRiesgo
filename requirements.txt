@@ -1,0 +1,21 @@
+# ---------------------------------------------------------------
+# PuntoRiesgo - dependencias de ejecución (desarrollo en escritorio)
+# Para builds móviles, `flet build` usa [project.dependencies] de pyproject.toml
+# ---------------------------------------------------------------
+
+# UI multiplataforma (Android / iOS / escritorio / web) en Python
+flet[all]==1.0.3
+# WebView para embeber Leaflet (Android, iOS, macOS, web)
+flet-webview==1.0.3
+# GPS del dispositivo
+flet-geolocator==1.0.3
+
+# Compresión de fotos y overzoom de tiles offline
+pillow>=11.0
+
+# Motor espacial acelerado (STRtree). Opcional: si no está disponible
+# en la plataforma, la app usa el motor puro-Python incluido.
+shapely>=2.0
+
+# Pruebas
+pytest>=8.0

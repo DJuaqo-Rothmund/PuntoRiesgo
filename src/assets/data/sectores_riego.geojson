@@ -1,0 +1,288 @@
+{
+ "type": "FeatureCollection",
+ "name": "Fundo de ejemplo - sectores y riego",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "S01",
+    "nombre": "Sector 1 - Paltos Norte",
+    "layer": "sector",
+    "cultivo": "Palto Hass",
+    "superficie_ha": 12.4
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -70.78,
+       -34.2005
+      ],
+      [
+       -70.7745,
+       -34.2003
+      ],
+      [
+       -70.7742,
+       -34.196
+      ],
+      [
+       -70.78,
+       -34.1961
+      ],
+      [
+       -70.78,
+       -34.2005
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "S02",
+    "nombre": "Sector 2 - Paltos Sur",
+    "layer": "sector",
+    "cultivo": "Palto Hass",
+    "superficie_ha": 11.8
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -70.78,
+       -34.205
+      ],
+      [
+       -70.7745,
+       -34.205
+      ],
+      [
+       -70.7745,
+       -34.2003
+      ],
+      [
+       -70.78,
+       -34.2005
+      ],
+      [
+       -70.78,
+       -34.205
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "S03",
+    "nombre": "Sector 3 - Cítricos",
+    "layer": "sector",
+    "cultivo": "Mandarina",
+    "superficie_ha": 13.1
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -70.7745,
+       -34.205
+      ],
+      [
+       -70.7694,
+       -34.205
+      ],
+      [
+       -70.769,
+       -34.2004
+      ],
+      [
+       -70.7745,
+       -34.2003
+      ],
+      [
+       -70.7745,
+       -34.205
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "S04",
+    "nombre": "Sector 4 - Uva de Mesa",
+    "layer": "sector",
+    "cultivo": "Uva Thompson",
+    "superficie_ha": 12.0
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -70.7745,
+       -34.2003
+      ],
+      [
+       -70.769,
+       -34.2004
+      ],
+      [
+       -70.7688,
+       -34.196
+      ],
+      [
+       -70.7742,
+       -34.196
+      ],
+      [
+       -70.7745,
+       -34.2003
+      ]
+     ],
+     [
+      [
+       -70.77235,
+       -34.19885
+      ],
+      [
+       -70.77235,
+       -34.19765
+      ],
+      [
+       -70.77115,
+       -34.19765
+      ],
+      [
+       -70.77115,
+       -34.19885
+      ],
+      [
+       -70.77235,
+       -34.19885
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "E01",
+    "nombre": "Caseta de riego principal",
+    "layer": "equipo",
+    "tipo_equipo": "caseta"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.77461,
+     -34.205
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "E02",
+    "nombre": "Válvula V-1A",
+    "layer": "equipo",
+    "tipo_equipo": "valvula"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.7778,
+     -34.19825
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "E03",
+    "nombre": "Válvula V-2A",
+    "layer": "equipo",
+    "tipo_equipo": "valvula"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.77725,
+     -34.20275
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "E04",
+    "nombre": "Válvula V-3A",
+    "layer": "equipo",
+    "tipo_equipo": "valvula"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.771475,
+     -34.202975
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "E05",
+    "nombre": "Válvula V-4A",
+    "layer": "equipo",
+    "tipo_equipo": "valvula"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.773125,
+     -34.199375
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "E06",
+    "nombre": "Bomba pozo profundo",
+    "layer": "equipo",
+    "tipo_equipo": "bomba"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.77945,
+     -34.195775
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "E07",
+    "nombre": "Filtro de arena F-1",
+    "layer": "equipo",
+    "tipo_equipo": "filtro"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -70.774225,
+     -34.20491
+    ]
+   }
+  }
+ ]
+}

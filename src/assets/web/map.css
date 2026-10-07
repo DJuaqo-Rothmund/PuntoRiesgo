@@ -1,0 +1,155 @@
+html, body, #map {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: #1b1f23;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- Pines de alertas (color = severidad, glifo = tipo) ---------- */
+.risk-pin {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--c, #c62828);
+  transform: rotate(-45deg);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+}
+.risk-pin span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(45deg);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.risk-pin.pending::after {
+  /* punto blanco: aún no sincronizada */
+  content: "";
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #455a64;
+}
+.risk-pin.critica {
+  animation: pulse 1.4s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(198, 40, 40, 0.75); }
+  70% { box-shadow: 0 0 0 16px rgba(198, 40, 40, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(198, 40, 40, 0); }
+}
+
+/* ---------- Posición del usuario ---------- */
+.user-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #1e88e5;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.4), 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.pick-marker {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px dashed #fff;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ---------- Etiquetas de sectores ---------- */
+.sector-label {
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 11px;
+  box-shadow: none;
+  padding: 1px 6px;
+}
+.sector-label::before { display: none; }
+
+/* ---------- Controles ---------- */
+.ctrl-btn {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  font-size: 20px;
+  background: #fff;
+  cursor: pointer;
+  user-select: none;
+}
+.ctrl-btn.active {
+  background: #1e88e5;
+  color: #fff;
+}
+
+.legend {
+  background: rgba(255, 255, 255, 0.94);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 18px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+}
+.legend .row { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.legend .row.off { opacity: 0.35; text-decoration: line-through; }
+.legend .sw { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #fff; }
+
+.popup h4 { margin: 0 0 4px; font-size: 14px; }
+.popup .meta { color: #555; font-size: 12px; line-height: 17px; }
+.popup img { width: 100%; max-width: 240px; border-radius: 6px; margin-top: 6px; }
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ---------- Barra de estado / toast ---------- */
+.statusbar {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(33, 33, 33, 0.85);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.statusbar.offline { background: rgba(183, 28, 28, 0.9); }
+.toast {
+  position: absolute;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(33, 33, 33, 0.9);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  max-width: 85%;
+  text-align: center;
+}
+.hidden { display: none; }
