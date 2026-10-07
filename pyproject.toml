@@ -38,3 +38,9 @@ NSPhotoLibraryUsageDescription = "PuntoRiesgo adjunta fotos de tu galería a los
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.flet.flutter.pubspec.dependency_overrides]
+# jni_flutter 1.0.4+1 (6-oct-2026) exige jni ^1.1.0, pero Flet 1.0.3 fija
+# jni 1.0.0 → "generated bindings expect package:jni ^1.1.0". Se fija la
+# versión anterior, compatible. Quitar al actualizar Flet.
+jni_flutter = "1.0.4"
