@@ -44,10 +44,18 @@ class CameraCapture:
         self.finished = False
 
         self.camera = fc.Camera(expand=True, preview_enabled=True)
-        self.status = ft.Text("Abriendo cámara…", color=ft.Colors.WHITE, size=13)
-        self.shutter = ft.IconButton(
-            icon=ft.Icons.CIRCLE, icon_size=72, icon_color=ft.Colors.WHITE,
-            tooltip="Tomar foto", on_click=self._shoot, disabled=True,
+        self.status = ft.Text("Abriendo cámara…", color=ft.Colors.WHITE, size=13.5,
+                              font_family="Manrope SemiBold")
+        # Disparador: anillo blanco con núcleo (estilo cámara nativa).
+        self.shutter_core = ft.Container(width=60, height=60, border_radius=30,
+                                         bgcolor=ft.Colors.WHITE_54)
+        self.shutter = ft.Container(
+            width=80, height=80, border_radius=40,
+            border=ft.Border.all(4, ft.Colors.WHITE),
+            alignment=ft.Alignment.CENTER,
+            content=self.shutter_core,
+            on_click=self._shoot,
+            disabled=True,
         )
         self.flash_btn = ft.IconButton(
             icon=FLASH_ICONS["off"], icon_color=ft.Colors.WHITE, icon_size=28,
@@ -91,7 +99,7 @@ class CameraCapture:
                             bottom=0, left=0, right=0, bgcolor=bar_bg,
                             padding=ft.Padding.only(left=24, right=24, top=8, bottom=24),
                             content=ft.Row(
-                                [ft.Container(width=48), self.shutter, self.flip_btn],
+                                [ft.Container(width=52), self.shutter, self.flip_btn],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             ),
                         ),
@@ -152,6 +160,7 @@ class CameraCapture:
         )
         self.status.value = ""
         self.shutter.disabled = False
+        self.shutter_core.bgcolor = ft.Colors.WHITE
         self.flash_btn.disabled = False
         self.flip_btn.disabled = len(self.cameras) < 2
         self.page.update()
@@ -162,6 +171,7 @@ class CameraCapture:
             return
         self.busy = True
         self.shutter.disabled = True
+        self.shutter_core.bgcolor = ft.Colors.WHITE_54
         self.status.value = "Guardando…"
         self.page.update()
         try:
@@ -170,6 +180,7 @@ class CameraCapture:
             log.exception("take_picture falló")
             self.busy = False
             self.shutter.disabled = False
+            self.shutter_core.bgcolor = ft.Colors.WHITE
             self.status.value = f"Error: {exc}"
             self.page.update()
             return

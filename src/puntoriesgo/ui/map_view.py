@@ -61,18 +61,18 @@ class MapView:
                 alignment=ft.MainAxisAlignment.CENTER,
                 tight=True,
                 controls=[
-                    ft.Icon(ft.Icons.SATELLITE_ALT, size=64, color=ft.Colors.WHITE70),
+                    ft.Icon(ft.Icons.SATELLITE_ALT, size=64, color=ft.Colors.WHITE_70),
                     ft.Text(
                         "El WebView no está disponible en esta plataforma de escritorio.",
                         color=ft.Colors.WHITE, text_align=ft.TextAlign.CENTER,
                     ),
                     ft.Text(
                         "Abre el mapa en el navegador o ejecuta `flet run --web`.",
-                        color=ft.Colors.WHITE70, size=12, text_align=ft.TextAlign.CENTER,
+                        color=ft.Colors.WHITE_70, size=12, text_align=ft.TextAlign.CENTER,
                     ),
                     ft.Button(content="Abrir mapa", icon=ft.Icons.OPEN_IN_BROWSER,
                               on_click=open_browser),
-                    ft.Text(self.url, selectable=True, size=11, color=ft.Colors.WHITE54),
+                    ft.Text(self.url, selectable=True, size=11, color=ft.Colors.WHITE_54),
                 ],
             ),
         )

@@ -81,8 +81,7 @@
       attributionControl: true,
       preferCanvas: false,
     });
-    L.control.zoom({ position: "topright" }).addTo(S.map);
-    L.control.scale({ imperial: false, position: "bottomleft" }).addTo(S.map);
+    L.control.scale({ imperial: false, position: "bottomright" }).addTo(S.map);
 
     // Mapa base satelital servido por Python (caché offline -> red -> overzoom)
     L.tileLayer("tiles/{z}/{x}/{y}", {
@@ -95,43 +94,39 @@
 
     S.layers.sectors = L.geoJSON(null, {
       style: function (f) {
-        // Color del plano si la capa lo trae; si no, amarillo.
-        const c = (f && f.properties && f.properties.color) || "#ffeb3b";
-        return { color: c, weight: 2, fillColor: c, fillOpacity: 0.12 };
+        // Color del plano si la capa lo trae; si no, dorado.
+        const c = (f && f.properties && f.properties.color) || "#e9b949";
+        return { color: c, weight: 1.6, opacity: 0.95, fillColor: c, fillOpacity: 0.09 };
       },
       onEachFeature: function (f, layer) {
-        layer.bindTooltip(esc(f.properties._name), {
+        layer.bindTooltip(esc(f.properties.sector || f.properties._name), {
           permanent: true, direction: "center", className: "sector-label",
         });
-        layer.bindPopup(featurePopup(f, "Sector"));
+        layer.bindPopup(sectorPopup(f), { maxWidth: 280, minWidth: 240 });
+        layer.on("popupopen", function () { layer.setStyle({ weight: 3.2, fillOpacity: 0.22 }); });
+        layer.on("popupclose", function () { S.layers.sectors.resetStyle(layer); });
       },
     }).addTo(S.map);
 
     S.layers.other = L.geoJSON(null, {
-      style: function () { return { color: "#80deea", weight: 2, dashArray: "4 4" }; },
+      style: function () { return { color: "#7fd3e6", weight: 2, opacity: 0.8, dashArray: "4 5" }; },
     }).addTo(S.map);
 
     S.layers.equipment = L.geoJSON(null, {
       pointToLayer: function (f, latlng) {
         return L.circleMarker(latlng, {
-          radius: 7, color: "#fff", weight: 2, fillColor: "#0288d1", fillOpacity: 1,
+          radius: 7, color: "#fff", weight: 2.5, fillColor: "#3b9eff", fillOpacity: 1,
         });
       },
       onEachFeature: function (f, layer) {
-        layer.bindTooltip("💧 " + esc(f.properties._name), { direction: "top", offset: [0, -6] });
-        layer.bindPopup(featurePopup(f, "Equipo de riego"));
+        layer.bindTooltip(esc(f.properties._name), { direction: "top", offset: [0, -8], className: "sector-label" });
+        layer.bindPopup(featurePopup(f, "Equipo de riego", "equipo"), { maxWidth: 280, minWidth: 240 });
       },
     }).addTo(S.map);
 
     S.layers.alerts = L.layerGroup().addTo(S.map);
 
-    L.control.layers(null, {
-      "Sectores": S.layers.sectors,
-      "Equipos de riego": S.layers.equipment,
-      "Alertas": S.layers.alerts,
-    }, { position: "topright", collapsed: true }).addTo(S.map);
-
-    addLocateControl();
+    addControls();
     addLegend();
     setupLongPress();
 
@@ -153,43 +148,93 @@
     poll();
   }
 
-  function featurePopup(f, title) {
+  function row(icon, label, value) {
+    if (value === undefined || value === null || value === "") return "";
+    return '<div class="r"><span class="i">' + PRIcons.svg(icon, 17) + '</span><span>' +
+      '<span class="k">' + esc(label) + '</span><span class="v">' + esc(value) + "</span></span></div>";
+  }
+
+  function popHead(color, icon, title, sub) {
+    return '<div class="head"><span class="badge-ico" style="background:' + color + '">' +
+      PRIcons.svg(icon, 21) + '</span><div><h4>' + esc(title) + '</h4><div class="sub">' +
+      esc(sub || "") + "</div></div></div>";
+  }
+
+  function sectorPopup(f) {
+    const p = f.properties || {};
+    const color = p.color || "#e9b949";
+    return '<div class="pop"><div class="body">' +
+      popHead(color, "sector", p.sector || p._name, p.equipo_riego || "Sector") +
+      '<div class="rows">' +
+      row("sector", "Superficie", p.hectareas ? String(p.hectareas).replace(".", ",") + " ha" : "") +
+      row("nota", "Hileras", p.hileras) +
+      row("equipo", "Equipo de riego", p.equipo_riego) +
+      row("nota", "Variedades", p.variedades) +
+      row("nota", "Etiquetas del plano", p.etiquetas_plano) +
+      "</div></div></div>";
+  }
+
+  function featurePopup(f, title, icon) {
     const p = f.properties || {};
     const rows = Object.keys(p)
-      .filter(function (k) { return k[0] !== "_" && p[k] !== "" && p[k] != null; })
-      .slice(0, 8)
-      .map(function (k) { return "<b>" + esc(k) + ":</b> " + esc(p[k]); })
-      .join("<br>");
-    return '<div class="popup"><h4>' + esc(title) + ": " + esc(p._name) + "</h4>" +
-      '<div class="meta">' + rows + "</div></div>";
+      .filter(function (k) { return k[0] !== "_" && p[k] !== "" && p[k] != null && k !== "layer"; })
+      .slice(0, 6)
+      .map(function (k) { return row("nota", k.replace(/_/g, " "), p[k]); })
+      .join("");
+    return '<div class="pop"><div class="body">' + popHead("#3b9eff", icon || "nota", p._name, title) +
+      '<div class="rows">' + rows + "</div></div></div>";
   }
 
   // ------------------------------------------------------------------ //
   // Controles
   // ------------------------------------------------------------------ //
   let locateBtn = null;
-  function addLocateControl() {
+
+  function button(parent, icon, title, onClick) {
+    const b = L.DomUtil.create("div", "ctrl-btn", parent);
+    b.title = title;
+    b.innerHTML = PRIcons.svg(icon, 22);
+    L.DomEvent.on(b, "click", function (e) { L.DomEvent.stop(e); onClick(b); });
+    return b;
+  }
+
+  function addControls() {
     const Ctl = L.Control.extend({
       options: { position: "topright" },
       onAdd: function () {
-        const wrap = L.DomUtil.create("div", "leaflet-bar");
-        locateBtn = L.DomUtil.create("div", "ctrl-btn active", wrap);
-        locateBtn.title = "Seguir mi posición";
-        locateBtn.innerHTML = "◎";
+        const wrap = L.DomUtil.create("div", "");
         L.DomEvent.disableClickPropagation(wrap);
-        L.DomEvent.on(locateBtn, "click", function () {
+        L.DomEvent.disableScrollPropagation(wrap);
+
+        const zoom = L.DomUtil.create("div", "ctrl-stack glass", wrap);
+        button(zoom, "plus", "Acercar", function () { S.map.zoomIn(); });
+        button(zoom, "minus", "Alejar", function () { S.map.zoomOut(); });
+
+        const tools = L.DomUtil.create("div", "ctrl-stack glass ctrl-gap", wrap);
+        locateBtn = button(tools, "locate", "Seguir mi posición", function () {
           setFollow(!S.follow);
           if (S.follow && S.userMarker) {
             S.map.setView(S.userMarker.getLatLng(), Math.max(S.map.getZoom(), 17));
           }
         });
-        const fitBtn = L.DomUtil.create("div", "ctrl-btn", wrap);
-        fitBtn.title = "Ver todo el predio";
-        fitBtn.innerHTML = "⤢";
-        L.DomEvent.on(fitBtn, "click", function () {
-          setFollow(false);
-          fitAll();
+        locateBtn.classList.toggle("active", S.follow);
+        button(tools, "fit", "Ver todo el predio", function () { setFollow(false); fitAll(); });
+        const layersBtn = button(tools, "layers", "Capas", function () {
+          panel.classList.toggle("open");
+          layersBtn.classList.toggle("active", panel.classList.contains("open"));
         });
+
+        const panel = L.DomUtil.create("div", "layers-panel glass", wrap);
+        [["Sectores", "sectors"], ["Equipos de riego", "equipment"], ["Alertas", "alerts"]]
+          .forEach(function (item) {
+            const r = L.DomUtil.create("div", "layer-row on", panel);
+            r.innerHTML = '<span class="check"></span>' + esc(item[0]);
+            L.DomEvent.on(r, "click", function () {
+              const layer = S.layers[item[1]];
+              if (S.map.hasLayer(layer)) S.map.removeLayer(layer); else S.map.addLayer(layer);
+              r.classList.toggle("on", S.map.hasLayer(layer));
+            });
+          });
         return wrap;
       },
     });
@@ -203,23 +248,26 @@
 
   function fitAll() {
     const b = S.layers.sectors.getBounds();
-    if (b.isValid()) S.map.fitBounds(b, { padding: [20, 20] });
+    if (b.isValid()) S.map.fitBounds(b, { padding: [24, 24] });
   }
 
+  const legendChips = {};
   function addLegend() {
     const Legend = L.Control.extend({
       options: { position: "bottomleft" },
       onAdd: function () {
-        const div = L.DomUtil.create("div", "legend");
+        const div = L.DomUtil.create("div", "legend glass");
         L.DomEvent.disableClickPropagation(div);
-        div.innerHTML = "<b>Severidad</b>";
         S.cfg.catalog.severities.slice().reverse().forEach(function (s) {
-          const row = L.DomUtil.create("div", "row", div);
-          row.innerHTML = '<span class="sw" style="background:' + s.color + '"></span>' + esc(s.label);
-          L.DomEvent.on(row, "click", function () {
+          const chip = L.DomUtil.create("div", "chip", div);
+          chip.title = "Mostrar/ocultar severidad " + s.label;
+          chip.innerHTML = '<span class="dot" style="background:' + s.color + '"></span>' +
+            esc(s.label) + ' <span class="count">0</span>';
+          legendChips[s.id] = chip;
+          L.DomEvent.on(chip, "click", function () {
             if (S.hiddenSeverities.has(s.id)) S.hiddenSeverities.delete(s.id);
             else S.hiddenSeverities.add(s.id);
-            row.classList.toggle("off", S.hiddenSeverities.has(s.id));
+            chip.classList.toggle("off", S.hiddenSeverities.has(s.id));
             renderAlerts();
           });
         });
@@ -269,7 +317,7 @@
     if (navigator.vibrate) navigator.vibrate(40);
     if (S.pickMarker) S.map.removeLayer(S.pickMarker);
     S.pickMarker = L.marker(latlng, {
-      icon: L.divIcon({ className: "", html: '<div class="pick-marker"></div>', iconSize: [22, 22], iconAnchor: [11, 11] }),
+      icon: L.divIcon({ className: "", html: '<div class="pick-marker"></div>', iconSize: [26, 26], iconAnchor: [13, 13] }),
       interactive: false,
     }).addTo(S.map);
     setTimeout(function () {
@@ -281,44 +329,71 @@
   // ------------------------------------------------------------------ //
   // Render de alertas
   // ------------------------------------------------------------------ //
+  const PIN_PATH = "M19 44.5C19 44.5 4 29.6 4 18.5a15 15 0 1 1 30 0C34 29.6 19 44.5 19 44.5Z";
+
   function pinIcon(p) {
-    const sync = p.sync_state === "synced" ? "" : " pending";
+    const pending = p.sync_state !== "synced";
     return L.divIcon({
       className: "",
-      html: '<div class="risk-pin ' + esc(p.severity) + sync + '" style="--c:' + p.color + '"><span>' +
-        esc(p.risk_glyph) + "</span></div>",
-      iconSize: [34, 34],
-      // El cuadrado rotado -45° deja su esquina aguda abajo al centro:
-      // centro (17) + media diagonal (34·√2/2 ≈ 24) = 41 px.
-      iconAnchor: [17, 41],
-      popupAnchor: [0, -26],
+      html: '<div class="pin ' + esc(p.severity) + '">' +
+        '<svg class="shape" viewBox="0 0 38 46" width="38" height="46"><path d="' + PIN_PATH +
+        '" fill="' + p.color + '" stroke="#fff" stroke-width="2.2"/></svg>' +
+        '<span class="ico">' + PRIcons.svg(p.risk_type, 20) + "</span>" +
+        (pending ? '<span class="sync"></span>' : "") + "</div>",
+      iconSize: [38, 46],
+      iconAnchor: [19, 45],
+      popupAnchor: [0, -42],
     });
+  }
+
+  function fmtDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString("es-CL", { day: "numeric", month: "short" }) + " · " +
+      d.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
   }
 
   function alertPopup(p) {
     const sev = S.sevById[p.severity] || { color: "#999", label: p.severity };
-    const date = new Date(p.created_at).toLocaleString("es-CL");
-    let html = '<div class="popup"><h4>' + esc(p.risk_glyph) + " " + esc(p.risk_label) + "</h4>" +
-      '<span class="badge" style="background:' + sev.color + '">' + esc(sev.label) + "</span> " +
-      '<span class="badge" style="background:' + (p.sync_state === "synced" ? "#2e7d32" : "#607d8b") + '">' +
-      (p.sync_state === "synced" ? "Sincronizada" : "Pendiente sync") + "</span>" +
-      '<div class="meta">' +
-      "<b>Sector:</b> " + esc(p.sector_name || "Fuera de sectores") +
-      (p.sector_name && !p.sector_inside ? " (a " + Math.round(p.sector_distance_m) + " m)" : "") + "<br>" +
-      "<b>Equipo cercano:</b> " + esc(p.equipment_name || "-") +
-      (p.equipment_distance_m != null ? " (" + Math.round(p.equipment_distance_m) + " m)" : "") + "<br>" +
-      "<b>Fecha:</b> " + esc(date) + "<br>" +
-      (p.accuracy_m ? "<b>Precisión GPS:</b> ±" + Math.round(p.accuracy_m) + " m<br>" : "") +
-      (p.description ? "<b>Obs.:</b> " + esc(p.description) : "") +
-      "</div>";
-    if (p.has_photo) html += '<img loading="lazy" src="photos/' + encodeURIComponent(p.id) + '.jpg">';
-    return html + "</div>";
+    const synced = p.sync_state === "synced";
+    const sector = p.sector_name
+      ? p.sector_name + (!p.sector_inside && p.sector_distance_m != null
+        ? " (a " + Math.round(p.sector_distance_m) + " m)" : "")
+      : "Fuera de sectores";
+    const equipo = p.equipment_name
+      ? p.equipment_name + (p.equipment_distance_m != null ? " · " + Math.round(p.equipment_distance_m) + " m" : "")
+      : "";
+    let html = '<div class="pop">';
+    if (p.has_photo) {
+      html += '<img class="photo" loading="lazy" src="photos/' + encodeURIComponent(p.id) + '.jpg">';
+    }
+    html += '<div class="body">' +
+      popHead(sev.color, p.risk_type, p.risk_label, fmtDate(p.created_at)) +
+      '<div class="tags">' +
+      '<span class="tag"><span class="d" style="background:' + sev.color + '"></span>' + esc(sev.label) + "</span>" +
+      '<span class="tag">' + PRIcons.svg(synced ? "synced" : "pending", 14) +
+      (synced ? "Sincronizada" : "Por enviar") + "</span>" +
+      "</div>" +
+      '<div class="rows">' +
+      row("sector", "Sector", sector) +
+      row("equipo", "Equipo de riego", equipo) +
+      row("gps", "Precisión GPS", p.accuracy_m ? "± " + Math.round(p.accuracy_m) + " m" : "") +
+      "</div>" +
+      (p.description ? '<div class="note">' + esc(p.description) + "</div>" : "") +
+      "</div></div>";
+    return html;
   }
 
   function renderAlerts() {
     if (!S.alertsData) return;
     S.layers.alerts.clearLayers();
     S.alertMarkers = {};
+    const counts = {};
+    S.alertsData.features.forEach(function (f) {
+      counts[f.properties.severity] = (counts[f.properties.severity] || 0) + 1;
+    });
+    Object.keys(legendChips).forEach(function (id) {
+      legendChips[id].querySelector(".count").textContent = counts[id] || 0;
+    });
     // Las más graves al final para que queden encima.
     const feats = S.alertsData.features.slice().sort(function (a, b) {
       return (S.sevById[a.properties.severity] || {}).rank - (S.sevById[b.properties.severity] || {}).rank;
@@ -330,7 +405,7 @@
       const m = L.marker([c[1], c[0]], {
         icon: pinIcon(p),
         zIndexOffset: ((S.sevById[p.severity] || {}).rank || 0) * 100,
-      }).bindPopup(alertPopup(p), { maxWidth: 260 });
+      }).bindPopup(alertPopup(p), { maxWidth: 280, minWidth: 260 });
       m.on("click", function () { postEvent({ type: "alert_click", id: p.id }); });
       m.addTo(S.layers.alerts);
       S.alertMarkers[p.id] = m;
@@ -361,10 +436,14 @@
     const ll = [pos.lat, pos.lon];
     if (!S.userMarker) {
       S.accuracyCircle = L.circle(ll, {
-        radius: pos.accuracy || 0, color: "#1e88e5", weight: 1, fillOpacity: 0.12, interactive: false,
+        radius: pos.accuracy || 0, color: "#3b9eff", weight: 1, opacity: 0.6,
+        fillColor: "#3b9eff", fillOpacity: 0.1, interactive: false,
       }).addTo(S.map);
       S.userMarker = L.marker(ll, {
-        icon: L.divIcon({ className: "", html: '<div class="user-dot"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }),
+        icon: L.divIcon({
+          className: "", html: '<div class="me"><span class="halo"></span><span class="core"></span></div>',
+          iconSize: [20, 20], iconAnchor: [10, 10],
+        }),
         zIndexOffset: 10000,
         interactive: false,
       }).addTo(S.map);
@@ -413,14 +492,15 @@
 
   function updateStatus(sync) {
     const el = document.getElementById("statusbar");
-    if (!sync) return;
+    if (!sync || S.cfg.embedded) { el.classList.add("hidden"); return; }
     const offline = !sync.backend_reachable;
     const pending = sync.pending || 0;
     if (!offline && pending === 0) { el.classList.add("hidden"); return; }
     el.classList.remove("hidden");
     el.classList.toggle("offline", offline);
-    el.textContent = (offline ? "● Sin conexión" : "● En línea") +
-      (pending ? " · " + pending + " pendiente(s) de sincronizar" : "");
+    el.classList.toggle("pending", !offline && pending > 0);
+    el.innerHTML = '<span class="d"></span>' + (offline ? "Sin conexión" : "En línea") +
+      (pending ? ' <span style="color:var(--muted)">· ' + pending + " por enviar</span>" : "");
   }
 
   // ------------------------------------------------------------------ //

@@ -72,6 +72,7 @@ class VectorLayers:
     equipment: list[VectorFeature] = field(default_factory=list)
     other: list[VectorFeature] = field(default_factory=list)
     source_path: Optional[Path] = None
+    name: Optional[str] = None  # nombre del predio (GeoJSON "name" / KML Document)
 
     def all(self) -> list[VectorFeature]:
         return [*self.sectors, *self.equipment, *self.other]
@@ -108,8 +109,11 @@ def load_vector_file(path: str | Path) -> VectorLayers:
     if not path.exists():
         raise FileNotFoundError(f"No existe la capa vectorial: {path}")
     suffix = path.suffix.lower()
+    name: Optional[str] = None
     if suffix in (".geojson", ".json"):
-        features = _parse_geojson(json.loads(path.read_text(encoding="utf-8-sig")))
+        doc = json.loads(path.read_text(encoding="utf-8-sig"))
+        name = doc.get("name") if isinstance(doc.get("name"), str) else None
+        features = _parse_geojson(doc)
     elif suffix == ".kml":
         features = _parse_kml(path.read_bytes())
     elif suffix == ".kmz":
@@ -124,6 +128,7 @@ def load_vector_file(path: str | Path) -> VectorLayers:
         raise ValueError(f"Formato no soportado: {suffix} (usa GeoJSON, KML o KMZ)")
     layers = _classify(features)
     layers.source_path = path
+    layers.name = name or path.stem.replace("_", " ").title()
     return layers
 
 

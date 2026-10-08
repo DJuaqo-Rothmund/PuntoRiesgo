@@ -129,6 +129,7 @@ class AppContext:
             "attribution": src.attribution,
             "max_native_zoom": src.max_native_zoom,
             "max_zoom": 21,
+            "embedded": True,  # dentro de la app el estado de sync va en el encabezado
             "initial_zoom": 16,
             "center": list(ext.center) if ext else None,
             "bounds": ext.as_leaflet() if ext else None,

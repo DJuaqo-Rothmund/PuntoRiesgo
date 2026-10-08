@@ -68,10 +68,10 @@ class Severity(str, Enum):
 
 
 SEVERITY_META: dict[Severity, dict[str, str]] = {
-    Severity.BAJA: {"label": "Baja", "color": "#2e7d32"},
-    Severity.MEDIA: {"label": "Media", "color": "#f9a825"},
-    Severity.ALTA: {"label": "Alta", "color": "#ef6c00"},
-    Severity.CRITICA: {"label": "Crítica", "color": "#c62828"},
+    Severity.BAJA: {"label": "Baja", "color": "#34C27A"},
+    Severity.MEDIA: {"label": "Media", "color": "#F2C230"},
+    Severity.ALTA: {"label": "Alta", "color": "#F2802E"},
+    Severity.CRITICA: {"label": "Crítica", "color": "#E5484D"},
 }
 
 

@@ -16,6 +16,7 @@ from typing import Optional
 import flet as ft
 
 from ..app_context import AppContext
+from . import theme as T
 from ..geo.tile_cache import DownloadPlan, DownloadProgress, TileLimitExceeded
 
 log = logging.getLogger(__name__)
@@ -35,54 +36,98 @@ class OfflineMapDialog:
 
         src = ctx.cfg.tile_source
         zooms = [str(z) for z in range(10, src.max_native_zoom + 1)]
-        self.min_zoom = ft.Dropdown(
-            label="Zoom mínimo", value=str(ctx.cfg.offline_min_zoom), width=140,
-            options=[ft.DropdownOption(key=z, text=z) for z in zooms],
-            on_select=self._invalidate,
-        )
-        self.max_zoom = ft.Dropdown(
-            label="Zoom máximo", value=str(min(ctx.cfg.offline_max_zoom, src.max_native_zoom)),
-            width=140, options=[ft.DropdownOption(key=z, text=z) for z in zooms],
-            on_select=self._invalidate,
-        )
-        self.info = ft.Text(size=13)
-        self.cache_info = ft.Text(size=12, color=ft.Colors.ON_SURFACE_VARIANT)
-        self.bar = ft.ProgressBar(value=0, visible=False)
-        self.progress_txt = ft.Text(size=12, visible=False)
 
-        self.calc_btn = ft.OutlinedButton(content="Calcular", icon=ft.Icons.CALCULATE,
-                                          on_click=self._calculate)
-        self.download_btn = ft.FilledButton(content="Descargar", icon=ft.Icons.DOWNLOAD,
-                                            on_click=self._download, disabled=True)
-        self.cancel_btn = ft.TextButton(content="Cerrar", on_click=self._close)
-        self.clear_btn = ft.TextButton(content="Borrar caché", icon=ft.Icons.DELETE_OUTLINE,
-                                       on_click=self._clear_cache)
+        def zoom_dd(label: str, value: int) -> ft.Dropdown:
+            return ft.Dropdown(
+                label=label, value=str(value), expand=True, filled=True,
+                fill_color=T.SURFACE_2, border_radius=14, border_color=T.OUTLINE,
+                focused_border_color=T.ACCENT,
+                options=[ft.DropdownOption(key=z, text=z) for z in zooms],
+                on_select=self._invalidate,
+            )
+
+        self.min_zoom = zoom_dd("Zoom mínimo", ctx.cfg.offline_min_zoom)
+        self.max_zoom = zoom_dd("Zoom máximo", min(ctx.cfg.offline_max_zoom, src.max_native_zoom))
+        self.info = ft.Text(size=13.5, color=T.TEXT)
+        self.cache_info = ft.Text("—", size=14.5, color=T.TEXT, font_family=T.FONT_SEMI)
+        self.bar = ft.ProgressBar(value=0, visible=False, color=T.ACCENT, bgcolor=T.SURFACE_3,
+                                  bar_height=8, border_radius=4)
+        self.progress_txt = ft.Text(size=12.5, color=T.MUTED, visible=False)
+
+        text_style = ft.ButtonStyle(color=T.MUTED, shape=ft.RoundedRectangleBorder(radius=12))
+        self.calc_btn = ft.OutlinedButton(
+            content="Calcular", icon=ft.Icons.CALCULATE_ROUNDED, on_click=self._calculate,
+            height=46,
+            style=ft.ButtonStyle(color=T.TEXT, side=ft.BorderSide(1, T.OUTLINE),
+                                 shape=ft.RoundedRectangleBorder(radius=14)),
+        )
+        self.download_btn = ft.FilledButton(
+            content="Descargar", icon=ft.Icons.DOWNLOAD_ROUNDED, on_click=self._download,
+            disabled=True, height=46,
+            style=ft.ButtonStyle(bgcolor={ft.ControlState.DEFAULT: T.ACCENT,
+                                          ft.ControlState.DISABLED: T.SURFACE_3},
+                                 color={ft.ControlState.DEFAULT: T.ON_ACCENT,
+                                        ft.ControlState.DISABLED: T.MUTED},
+                                 shape=ft.RoundedRectangleBorder(radius=14)),
+        )
+        self.cancel_btn = ft.TextButton(content="Cerrar", on_click=self._close, style=text_style)
+        self.clear_btn = ft.TextButton(content="Borrar caché",
+                                       icon=ft.Icons.DELETE_OUTLINE_ROUNDED,
+                                       on_click=self._clear_cache, style=text_style)
 
         n_sectors = len(ctx.layers.sectors)
         self.dialog = ft.AlertDialog(
             modal=True,
-            title=ft.Text("Mapa satelital offline"),
-            content=ft.Column(
-                tight=True, width=420, spacing=12,
+            bgcolor=T.SURFACE,
+            shape=ft.RoundedRectangleBorder(radius=26),
+            title=ft.Row(
+                spacing=14,
                 controls=[
-                    ft.Text(
-                        f"Fuente: {src.name}. Área: {n_sectors} sectores + "
-                        f"{ctx.cfg.offline_buffer_m:.0f} m de margen.",
-                        size=13,
+                    ft.Container(
+                        width=44, height=44, border_radius=14,
+                        bgcolor=ft.Colors.with_opacity(0.15, T.ACCENT),
+                        alignment=ft.Alignment.CENTER,
+                        content=ft.Icon(ft.Icons.SATELLITE_ALT_ROUNDED, color=T.ACCENT),
                     ),
-                    ft.Row([self.min_zoom, self.max_zoom], wrap=True),
-                    ft.Text("Zoom 18 ≈ 0,6 m/píxel · 19 ≈ 0,3 m/píxel. Cada nivel "
-                            "extra multiplica ~4× los tiles.", size=11,
-                            color=ft.Colors.ON_SURFACE_VARIANT),
+                    ft.Column(
+                        spacing=1, tight=True, expand=True,
+                        controls=[T.title("Mapa offline", 19),
+                                  ft.Text(src.name, size=12, color=T.MUTED)],
+                    ),
+                ],
+            ),
+            content=ft.Column(
+                tight=True, width=420, spacing=14,
+                controls=[
+                    T.card(ft.Column(spacing=10, tight=True, controls=[
+                        T.info_row(ft.Icons.GRID_VIEW_ROUNDED, "Área de trabajo",
+                                   f"{n_sectors} sectores + {ctx.cfg.offline_buffer_m:.0f} m"),
+                        ft.Divider(height=1, color=T.OUTLINE),
+                        T.info_row(ft.Icons.STORAGE_ROUNDED, "Guardado en el teléfono",
+                                   self.cache_info),
+                    ])),
+                    ft.Row([self.min_zoom, self.max_zoom], spacing=10),
+                    ft.Text("Zoom 18 ≈ 0,6 m/píxel · 19 ≈ 0,3 m/píxel (se distinguen "
+                            "hileras). Cada nivel extra multiplica ~4× los tiles.",
+                            size=11.5, color=T.MUTED),
                     self.info,
                     self.bar,
                     self.progress_txt,
-                    self.cache_info,
                 ],
             ),
-            actions=[self.clear_btn, self.cancel_btn, self.calc_btn, self.download_btn],
+            actions_padding=ft.Padding.only(left=20, right=20, bottom=18),
+            actions=[
+                ft.Column(
+                    tight=True, spacing=6,
+                    controls=[
+                        ft.Row([ft.Container(self.calc_btn, expand=True),
+                                ft.Container(self.download_btn, expand=True)], spacing=10),
+                        ft.Row([self.clear_btn, self.cancel_btn],
+                               alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                    ],
+                ),
+            ],
         )
-
     # ------------------------------------------------------------------ #
     def open(self) -> None:
         self._refresh_cache_info()
@@ -95,11 +140,10 @@ class OfflineMapDialog:
         st = self.ctx.tile_store.stats()
         if st["count"]:
             self.cache_info.value = (
-                f"En caché: {st['count']:,} tiles ({_mb(st['bytes'])}), "
-                f"zoom {st['min_zoom']}–{st['max_zoom']}."
+                f"{st['count']:,} tiles · {_mb(st['bytes'])} · zoom {st['min_zoom']}–{st['max_zoom']}"
             ).replace(",", ".")
         else:
-            self.cache_info.value = "Caché vacía."
+            self.cache_info.value = "Nada descargado aún"
 
     def _invalidate(self, _e=None) -> None:
         self.plan = None

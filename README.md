@@ -30,6 +30,7 @@ PuntoRiesgo/
 │   │   ├── data/el_amanecer.geojson      # Predio El Amanecer: 40 sectores (plano DWG)
 │   │   └── web/
 │   │       ├── map.html / map.css / map.js   # Mapa Leaflet (pines, capas, GPS, long-press)
+│   │       ├── icons.js                      # Íconos SVG (Material Design Icons, Apache-2.0)
 │   │       └── vendor/leaflet/               # Leaflet local (funciona sin internet)
 │   └── puntoriesgo/
 │       ├── config.py           # AppConfig + fuentes de tiles (ESRI/Mapbox)
@@ -51,6 +52,7 @@ PuntoRiesgo/
 │           ├── map_view.py     # WebView (o alternativa en escritorio)
 │           ├── alert_form.py   # Formulario "Registrar Alerta"
 │           ├── camera_capture.py # Cámara a pantalla completa (flet-camera)
+│           ├── theme.py        # Tokens de diseño (colores, Manrope) y piezas comunes
 │           └── offline_dialog.py # Descarga del mapa offline con progreso
 └── tests/                      # pytest (+ tests/data/sectores_riego.geojson de ejemplo)
 ```

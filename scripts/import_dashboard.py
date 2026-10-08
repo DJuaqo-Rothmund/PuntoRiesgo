@@ -122,9 +122,12 @@ def to_feature(s: dict) -> dict:
 def convert(html_path: Path) -> dict:
     data = json.loads(js_literal_to_json(extract_array(html_path.read_text(encoding="utf-8"))))
     title = re.search(r"<title>(.*?)</title>", html_path.read_text(encoding="utf-8"), re.S)
+    name = title.group(1).strip() if title else html_path.stem
+    # "Dashboard El Amanecer · Sectorización…" -> "El Amanecer"
+    name = re.sub(r"^dashboard\s+", "", name.split("·")[0], flags=re.I).strip()
     return {
         "type": "FeatureCollection",
-        "name": title.group(1).strip() if title else html_path.stem,
+        "name": name,
         "features": [to_feature(s) for s in data],
     }
 
