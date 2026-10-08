@@ -50,6 +50,7 @@ PuntoRiesgo/
 │           ├── app.py          # Pantalla principal, GPS, conectividad, FAB
 │           ├── map_view.py     # WebView (o alternativa en escritorio)
 │           ├── alert_form.py   # Formulario "Registrar Alerta"
+│           ├── camera_capture.py # Cámara a pantalla completa (flet-camera)
 │           └── offline_dialog.py # Descarga del mapa offline con progreso
 └── tests/                      # pytest (+ tests/data/sectores_riego.geojson de ejemplo)
 ```
@@ -147,6 +148,5 @@ flet build ipa      # iOS (en macOS con Xcode)
 Todas las opciones se pueden fijar con `PUNTORIESGO_<NOMBRE>` o en `config.json`: `tile_source_id`, `mapbox_token`, `offline_min_zoom`, `offline_max_zoom`, `offline_buffer_m`, `offline_max_tiles`, `sector_tolerance_m` (si el GPS cae fuera de un sector, asigna el más cercano dentro de esa distancia), `backend`, `supabase_*`, `sync_interval_s`, `photo_max_side_px`, `photo_jpeg_quality`, `fake_gps`, `data_dir`.
 
 ## 6. Próximos pasos sugeridos
-* Captura directa con cámara (`flet-camera`). Hoy se usa el selector del sistema, que permite tomar la foto o elegirla de la galería.
 * Zonas de riesgo como polígonos, dibujadas en el mapa con Leaflet.draw.
 * Bajar al teléfono las alertas de otros usuarios (sync bidireccional) y avisos push para las críticas.

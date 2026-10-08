@@ -12,6 +12,8 @@ dependencies = [
   "flet==1.0.3",
   "flet-webview==1.0.3",
   "flet-geolocator==1.0.3",
+  "flet-camera==1.0.3",
+  "flet-permission-handler==1.0.3",
   "pillow",
 ]
 

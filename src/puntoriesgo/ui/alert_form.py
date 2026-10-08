@@ -16,6 +16,7 @@ import flet as ft
 
 from ..app_context import AppContext
 from ..models import Alert, RiskType, Severity
+from .camera_capture import CameraCapture, camera_supported
 
 log = logging.getLogger(__name__)
 
@@ -105,8 +106,12 @@ class AlertForm:
         )
         self.photo_preview = ft.Image(src=b"", height=140, fit=ft.BoxFit.COVER,
                                       border_radius=8, visible=False)
+        self.camera_btn = ft.FilledTonalButton(
+            content="Tomar foto", icon=ft.Icons.PHOTO_CAMERA, on_click=self._take_photo,
+            visible=camera_supported(page),
+        )
         self.photo_btn = ft.OutlinedButton(
-            content="Adjuntar foto", icon=ft.Icons.PHOTO_CAMERA, on_click=self._pick_photo,
+            content="Galería", icon=ft.Icons.PHOTO_LIBRARY, on_click=self._pick_photo,
         )
         self.error_txt = ft.Text("", color=ft.Colors.ERROR, size=12, visible=False)
         self.save_btn = ft.FilledButton(content="Guardar alerta", icon=ft.Icons.SAVE,
@@ -129,7 +134,7 @@ class AlertForm:
                     ft.Text("Severidad", size=12, weight=ft.FontWeight.W_500),
                     self.severity,
                     self.description,
-                    ft.Row([self.photo_btn]),
+                    ft.Row([self.camera_btn, self.photo_btn], wrap=True),
                     self.photo_preview,
                     self.error_txt,
                 ],
@@ -158,15 +163,33 @@ class AlertForm:
         if not files:
             return
         f = files[0]
-        self.photo_path, self.photo_bytes = f.path, f.bytes
+        await self._set_photo(f.path, f.bytes)
+
+    async def _take_photo(self, _e=None) -> None:
+        # La cámara ocupa toda la pantalla: se cierra el formulario y se
+        # vuelve a abrir (con todo lo ya ingresado) al terminar.
+        self.page.pop_dialog()
+        await CameraCapture(self.page, on_done=self._camera_done).open()
+
+    async def _camera_done(self, data: Optional[bytes], error: Optional[str]) -> None:
+        self.page.show_dialog(self.dialog)
+        if error:
+            self.error_txt.value = error
+            self.error_txt.visible = True
+            self.page.update()
+        elif data:
+            self.error_txt.visible = False
+            await self._set_photo(None, data)
+
+    async def _set_photo(self, path: Optional[str], data: Optional[bytes]) -> None:
+        self.photo_path, self.photo_bytes = path, data
         try:
-            preview = await asyncio.to_thread(self._thumbnail)
-            self.photo_preview.src = preview
+            self.photo_preview.src = await asyncio.to_thread(self._thumbnail)
             self.photo_preview.visible = True
-            self.photo_btn.content = "Cambiar foto"
         except Exception as exc:  # noqa: BLE001
             log.warning("No se pudo previsualizar: %s", exc)
-            self.photo_btn.content = f"Foto: {f.name}"
+            self.photo_preview.visible = False
+        self.camera_btn.content = "Otra foto"
         self.page.update()
 
     def _thumbnail(self) -> bytes:

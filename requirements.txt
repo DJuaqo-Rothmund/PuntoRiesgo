@@ -9,6 +9,9 @@ flet[all]==1.0.3
 flet-webview==1.0.3
 # GPS del dispositivo
 flet-geolocator==1.0.3
+# Cámara (fotos dentro de la app) y permisos en tiempo de ejecución
+flet-camera==1.0.3
+flet-permission-handler==1.0.3
 
 # Compresión de fotos y overzoom de tiles offline
 pillow>=11.0
